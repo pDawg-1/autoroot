@@ -20,8 +20,8 @@ def pipeline():
             result=investigate(sales,week,metric)
             stem=f"{metric}-{week:%Y-%m-%d}"
             (ROOT/"reports"/f"{stem}.md").write_text(f"# {metric.title()} investigation · {week:%Y-%m-%d}\n\n{result['narrative']}\n\nBaseline: the previous four-week average. Synthetic sales; business causes require independent validation.\n",encoding="utf-8")
-            timeline(weekly,metric,"ensemble",week).write_html(ROOT/"reports"/f"{stem}-timeline.html",include_plotlyjs=True)
-            waterfall(result).write_html(ROOT/"reports"/f"{stem}-drivers.html",include_plotlyjs=True)
+            timeline(weekly,metric,"ensemble",week).write_html(ROOT/"reports"/f"{stem}-timeline.html",include_plotlyjs="directory")
+            waterfall(result).write_html(ROOT/"reports"/f"{stem}-drivers.html",include_plotlyjs="directory")
             summaries.append({"metric":metric,"week":week,"actual":result["actual"],"expected":result["expected"],"gap":result["gap"],"narrative":result["narrative"]})
     pd.DataFrame(summaries).to_csv(ROOT/"reports"/"investigations.csv",index=False,date_format="%Y-%m-%d")
     print(f"Exported {len(summaries)} investigation briefs and chart pairs.")

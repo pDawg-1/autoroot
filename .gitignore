@@ -9,5 +9,6 @@ __pycache__/
 New
 reports/*.html
 reports/*.png
+reports/plotly.min.js
 *.log
 site/

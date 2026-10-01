@@ -2,6 +2,8 @@
 
 **Monitor weekly sales. Investigate unusual movements. Explain the drivers.**
 
+[**Open the live demo**](https://pdawg-1.github.io/autoroot/) · [Source repository](https://github.com/pDawg-1/autoroot) · [Pipeline checks](https://github.com/pDawg-1/autoroot/actions/workflows/verify.yml)
+
 AutoRoot is a Python sales investigation workspace that follows the analyst workflow from a weekly alert to a reconciled explanation. It combines past-only anomaly detection, DuckDB KPI queries, segment attribution, and interactive Plotly charts in Streamlit.
 
 The demo uses **37,440 reproducible synthetic records**, covering 104 weeks, eight regions, 15 products, and three channels. Eight labeled scenarios include a regional demand spike, supply disruption, channel outage, and a price change. All amounts are USD.
@@ -38,6 +40,8 @@ python -m streamlit run app.py
 ```
 
 On macOS/Linux, activate with `source .venv/bin/activate`. The committed dataset and reports let the app start immediately; generation and evaluation commands rebuild them. If no dataset or reports exist, the app computes them. To refresh cached results during development, clear Streamlit's cache after rebuilding reports.
+
+On Windows, `./run_local.ps1` starts the app using the project's environment, a system Python, or the local portable runtime when present. The portable runtime is a local convenience and is not included in the repository; cloned copies need the setup above.
 
 ## What you can explore
 
@@ -100,9 +104,11 @@ The included Pages workflow publishes a standalone interactive demo from the Pyt
 
 The intended public deployment is Streamlit Community Cloud. Push the repository to GitHub, connect the account at [Streamlit Community Cloud](https://share.streamlit.io/), and create an app with branch `main` and entrypoint `app.py`. Choose Python 3.10 in advanced settings. The requirements file and theme are included. Follow the [official deployment instructions](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
 
-Deployment status and verified links belong in this README only after publishing succeeds. No live URL is claimed before that verification.
+The [public demo](https://pdawg-1.github.io/autoroot/) is deployed on GitHub Pages. Its HTML and bundled chart library were verified to return HTTP 200. The Pages workflow runs pipeline tests and exported-demo control checks before deployment.
 
 ## Validation and further work
+
+Weekly monitoring is scheduled every Monday at 13:30 UTC, with a manual run option in GitHub Actions. It reads the committed sales CSVs and exports per-alert narrative briefs, timeline/waterfall HTML charts, evidence, and evaluation metrics as downloadable artifacts. It does not ingest an external feed: unchanged source data produces unchanged investigations. Run `python pipeline.py` locally for the same batch workflow.
 
 GitHub Actions rebuilds the panel, runs evaluation, tests the app and pipeline, and uploads evaluation artifacts. Tests verify that future mutations cannot change earlier scores, all attribution dimensions reconcile, the revenue bridge balances, invalid panels fail, and units labels exclude the price event.
 
