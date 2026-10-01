@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "development": "The existing 104-week seed-42 demonstration was already inspected and is development data.",
+  "holdout_seeds": [104729, 130363, 155921, 196613, 262147],
+  "periods": 156,
+  "holdout_start_index": 104,
+  "holdout_end_index_exclusive": 156,
+  "policy": "Freeze configuration and detector hash before the first run. Fit each prediction only on earlier observations; never use holdout labels for tuning. Report every seed and method, including misses. Any later detector change invalidates this first-use holdout claim.",
+  "bootstrap_resamples": 2000,
+  "bootstrap_seed": 20261001,
+  "future_events": [
+    {"id":"H01","index":109,"name":"Local demand spike","kind":"heatwave","region":"East","sku":"*","channel":"*","units_multiplier":1.28,"price_multiplier":1.0},
+    {"id":"H02","index":117,"name":"Two-week supply disruption, first week","kind":"stockout","region":"Northwest","sku":"Cola 750ml|Lemon 600ml","channel":"*","units_multiplier":0.55,"price_multiplier":1.0},
+    {"id":"H03","index":118,"name":"Two-week supply disruption, second week","kind":"stockout","region":"Northwest","sku":"Cola 750ml|Lemon 600ml","channel":"*","units_multiplier":0.65,"price_multiplier":1.0},
+    {"id":"H04","index":126,"name":"Channel availability loss","kind":"outage","region":"*","sku":"*","channel":"Online","units_multiplier":0.55,"price_multiplier":1.0},
+    {"id":"H05","index":133,"name":"Price-only increase","kind":"price","region":"*","sku":"*","channel":"*","units_multiplier":1.0,"price_multiplier":1.15},
+    {"id":"H06","index":140,"name":"Regional distribution increase","kind":"distribution","region":"Central","sku":"*","channel":"Modern trade","units_multiplier":1.5,"price_multiplier":1.0},
+    {"id":"H07","index":148,"name":"Broad demand decline","kind":"demand","region":"*","sku":"*","channel":"*","units_multiplier":0.82,"price_multiplier":1.0},
+    {"id":"H08","index":153,"name":"Channel restocking","kind":"restock","region":"*","sku":"*","channel":"Convenience","units_multiplier":1.3,"price_multiplier":1.0}
+  ]
+}

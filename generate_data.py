@@ -22,9 +22,9 @@ def scenarios():
         dict(id="S08", index=99, name="Convenience restocking", region="*", sku="*", channel="Convenience", units_multiplier=1.45, price_multiplier=1., hypothesis="Possible inventory restocking; validate sell-through versus shipments."),
     ]
 
-def generate(seed=42, output=None):
+def generate(seed=42, output=None, periods=104, event_rules=None):
     rng = np.random.default_rng(seed)
-    weeks = pd.date_range("2023-01-02", periods=104, freq="W-MON")
+    weeks = pd.date_range("2023-01-02", periods=periods, freq="W-MON")
     regions = pd.DataFrame({"region": REGIONS, "demand_factor": [1.20, 1.12, 1.05, 1.15, .95, .90, .82, 1.0]})
     products = pd.DataFrame({"sku": SKUS, "base_demand": [950, 820, 650, 880, 730, 320, 430, 520, 480, 550, 380, 420, 700, 360, 440], "list_price": [2.8, 2.4, 2.2, 1.6, 1.1, 2.5, 2.3, 3.2, 3.6, 2.7, 3.8, 3.3, 1.9, 2.0, 2.6]})
     channels = pd.DataFrame({"channel": CHANNELS, "demand_factor": [.55, .28, .17], "price_factor": [1., 1.08, .96]})
@@ -40,8 +40,18 @@ def generate(seed=42, output=None):
                     price = product.list_price * channel.price_factor
                     records.append((week, region.region, product.sku, channel.channel, units, price))
     sales = pd.DataFrame(records, columns=["week", "region", "sku", "channel", "units", "price"])
+    context = sales[["week", "region", "sku", "channel"]].copy()
+    context["stockout_days"] = 0
+    context["fill_rate"] = .98
+    context["outage_minutes"] = 0
+    context["promo_discount"] = 0.
+    context["store_count_change_pct"] = 0.
+    context["temperature_c"] = 24.
+    context["price_change_pct"] = 0.
     ledger = []
-    for event in scenarios():
+    for event in (scenarios() if event_rules is None else event_rules):
+        if event["index"] >= periods:
+            continue
         week = weeks[event["index"]]
         mask = sales.week.eq(week)
         for dim in ["region", "sku", "channel"]:
@@ -51,6 +61,20 @@ def generate(seed=42, output=None):
         before_rev = (sales.loc[mask, "units"] * sales.loc[mask, "price"]).sum()
         sales.loc[mask, "units"] = (sales.loc[mask, "units"] * event["units_multiplier"]).round().astype(int)
         sales.loc[mask, "price"] *= event["price_multiplier"]
+        kind = event.get("kind", event["id"])
+        if kind in ["S01", "heatwave"]:
+            context.loc[mask,"temperature_c"] = 41.
+        elif kind in ["S02", "promotion"]:
+            context.loc[mask,"promo_discount"] = 1-event["price_multiplier"]
+        elif kind in ["S03", "stockout"]:
+            context.loc[mask,"stockout_days"] = 3
+            context.loc[mask,"fill_rate"] = event["units_multiplier"]
+        elif kind in ["S04", "outage"]:
+            context.loc[mask,"outage_minutes"] = 7*24*60*(1-event["units_multiplier"])
+        elif kind in ["S05", "price"]:
+            context.loc[mask,"price_change_pct"] = event["price_multiplier"]-1
+        elif kind in ["S06", "distribution"]:
+            context.loc[mask,"store_count_change_pct"] = event["units_multiplier"]-1
         ledger.append({**event, "week": week, "affected_rows": int(mask.sum()), "injected_units_delta": int(sales.loc[mask, "units"].sum()-before_units), "injected_revenue_delta": round((sales.loc[mask, "units"]*sales.loc[mask, "price"]).sum()-before_rev, 2)})
     sales["revenue"] = (sales.units * sales.price).round(2)
     sales = sales.drop(columns="price")
@@ -58,7 +82,7 @@ def generate(seed=42, output=None):
     if output is not None:
         output = Path(output)
         output.mkdir(parents=True, exist_ok=True)
-        for name, frame in {"sales": sales, "ground_truth": labels, "regions": regions, "products": products, "channels": channels}.items():
+        for name, frame in {"sales": sales, "ground_truth": labels, "regions": regions, "products": products, "channels": channels, "operations": context}.items():
             frame.to_csv(output / f"{name}.csv", index=False, date_format="%Y-%m-%d")
     return sales, labels, regions, products, channels
 

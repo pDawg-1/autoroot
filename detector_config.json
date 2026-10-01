@@ -1,0 +1,12 @@
+{
+  "version": "2.0",
+  "rolling_threshold": 3.0,
+  "seasonal_threshold": 3.0,
+  "panel_family_alpha": 0.01,
+  "seasonal_noise_floor": 0.025,
+  "forest_contamination": 0.04,
+  "forest_trees": 80,
+  "forest_random_state": 42,
+  "warmup_weeks": 26,
+  "review_budget_per_week": 3
+}

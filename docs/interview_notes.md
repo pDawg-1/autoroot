@@ -14,7 +14,7 @@ Rolling windows shift by one week. Every seasonal fit and forest training set en
 
 ## Is 100% recall a production claim?
 
-No. The default synthetic panel contains eight known, one-week revenue events and a clean calibration period. Combined monitoring finds eight true events plus one false alert across 78 eligible weeks. Units has seven relevant events. Additional seeds and real holdout data are required to establish generalization. Individual detectors and the combined monitor have different monitoring coverage.
+No. The old development demonstration finds eight true revenue events plus one false alert. The new frozen benchmark uses five fresh seeds and unseen future weeks: revenue recall is 85%, with six misses retained, and precision is 100% on these simulations. Units recall is 82.9%. Neither result establishes real-world generalization. Individual detectors and the combined monitor also have different monitoring coverage.
 
 ## How do you identify the root cause?
 
@@ -30,13 +30,13 @@ The seasonal forecast answers whether sales are unusual relative to expected tre
 
 ## What would you improve first?
 
-Obtain more history, define an acceptable weekly alert budget, test on an untouched time period, control multiple testing, and incorporate holiday, promotion, inventory, and pricing features. Then add scheduled ingestion, analyst feedback, and persistent alert history.
+The project now has future-period multi-seed evaluation, a three-signal review budget, comparison-adjusted panel thresholds, operational evidence, idempotent ingestion, and review-record exports. The next priorities are real operational labels, a credible intervention comparison, controlled handling of new products and returns, and a durable shared review system. The scheduled workflow monitors advancing synthetic data with read-only repository access.
 
 ## Project bullets after publication
 
 Use these measured figures only for the committed default synthetic benchmark, and add repository and verified demo links before using the project on a resume:
 
-- Built a Python sales monitoring pipeline over 37,440 records, combining statistical detection and segment monitoring to identify eight injected revenue events at 88.9% precision and 100% recall.
-- Developed a DuckDB-backed investigation workspace with reconciled region/product/channel attribution, volume–price decomposition, interactive Plotly charts, and downloadable narrative reports.
+- Built a Python sales monitoring pipeline with a frozen five-seed future benchmark over 260 held-out week observations, achieving 100% precision and 85% recall on synthetic revenue events.
+- Developed validated weekly-feed ingestion and a DuckDB-backed investigation workspace with reconciled attribution, operational evidence, review queues, and explicit intervention-cost scenarios.
 
 These notes are preparation material. Be ready to walk through the actual code, explain the false alert, and reproduce the evaluation rather than memorizing the figures.

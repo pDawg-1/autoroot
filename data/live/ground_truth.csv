@@ -1,0 +1,16 @@
+id,name,region,sku,channel,units_multiplier,price_multiplier,hypothesis,week,affected_rows,injected_units_delta,injected_revenue_delta,kind
+S01,Regional heatwave,North,*,*,1.35,1.0,Weather-driven demand; validate against local weather records.,2023-08-14,45,3531,8706.22,
+S02,Promotion cannibalization,*,Cola 750ml|Lemon 600ml,Modern trade,1.8,0.7,Promotion uplift with a discount; validate promotion calendar and substitution.,2023-12-18,16,6791,5781.48,
+S03,Supply disruption,West,Cola 750ml|Lemon 600ml,*,0.6,1.0,Possible stockout; validate inventory and fill-rate records.,2024-01-29,6,-960,-2553.22,
+S04,Online channel outage,*,*,Online,0.35,1.0,Possible checkout disruption; validate order logs and uptime.,2024-03-18,120,-9426,-22022.5,
+S05,Price reset,*,*,*,1.0,1.22,Price increase rather than volume growth; validate price master.,2024-05-20,360,0,46559.27,
+S06,Regional distribution expansion,South,*,Modern trade,1.65,1.0,Possible distribution gain; validate active store count.,2024-07-22,15,3769,9054.7,
+S07,National demand contraction,*,*,*,0.78,1.0,Broad demand weakness; validate market and calendar context.,2024-09-30,360,-14636,-36116.2,
+S08,Convenience restocking,*,*,Convenience,1.45,1.0,Possible inventory restocking; validate sell-through versus shipments.,2024-11-25,120,9470,24793.13,
+F108,Synthetic availability disruption,West,Cola 750ml|Lemon 600ml,*,0.6,1.0,Validate the separate operational context.,2025-01-27,6,-1014,-2697.18,stockout
+F121,Synthetic availability disruption,*,*,Online,0.6,1.0,Validate the separate operational context.,2025-04-28,120,-6273,-14613.5,outage
+F134,Synthetic availability disruption,West,Cola 750ml|Lemon 600ml,*,0.6,1.0,Validate the separate operational context.,2025-07-28,6,-947,-2510.48,stockout
+F147,Synthetic availability disruption,*,*,Online,0.6,1.0,Validate the separate operational context.,2025-10-27,120,-5013,-11672.26,outage
+F160,Synthetic availability disruption,West,Cola 750ml|Lemon 600ml,*,0.6,1.0,Validate the separate operational context.,2026-01-26,6,-1099,-2911.49,stockout
+F173,Synthetic availability disruption,*,*,Online,0.6,1.0,Validate the separate operational context.,2026-04-27,120,-6704,-15672.29,outage
+F186,Synthetic availability disruption,West,Cola 750ml|Lemon 600ml,*,0.6,1.0,Validate the separate operational context.,2026-07-27,6,-939,-2499.52,stockout

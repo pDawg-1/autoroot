@@ -1,0 +1,11 @@
+{
+  "added_rows": 0,
+  "added_weeks": 0,
+  "duplicate_rows": 70200,
+  "source_kind": "synthetic",
+  "processed_at": "2026-10-01T15:02:17.739008+00:00",
+  "last_week": "2026-09-21",
+  "rows": 70200,
+  "weeks": 195,
+  "sales_sha256": "b8641554257f80a5f79dd370654c219e89603c9684e5c33cd7f337875cdc91f8"
+}

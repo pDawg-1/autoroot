@@ -1,0 +1,2 @@
+week,dimension,segment,actual,expected,score,threshold,absolute_gap,priority,review_status
+2024-01-29,region,West,25989.86,29011.864401541217,-4.399936066545322,3.5504211131541696,3022.004401541217,13296.626159599913,Queued

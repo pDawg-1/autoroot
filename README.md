@@ -6,11 +6,20 @@
 
 AutoRoot is a Python sales investigation workspace that follows the analyst workflow from a weekly alert to a reconciled explanation. It combines past-only anomaly detection, DuckDB KPI queries, segment attribution, and interactive Plotly charts in Streamlit.
 
-The demo uses **37,440 reproducible synthetic records**, covering 104 weeks, eight regions, 15 products, and three channels. Eight labeled scenarios include a regional demand spike, supply disruption, channel outage, and a price change. All amounts are USD.
+The original development panel has **37,440 reproducible synthetic records** across 104 weeks, eight regions, 15 products, and three channels. An advancing synthetic feed extends coverage through the last complete week. The full app also accepts uploaded sales and optional operational-context CSVs and computes their results in Python. All amounts are USD.
 
 ## Results
 
-Measured on the default seed (42), across 78 monitored weeks after a 26-week clean calibration period:
+The existing demonstration was already inspected and is **development data**. A prospective holdout adds 52 unseen future weeks in each of five fresh seeds, using changed event locations and sizes and a two-week supply disruption. Configuration and detector hashes were frozen before testing; each prediction fits only earlier observations.
+
+| Holdout metric | Precision | Recall | F1 | True alerts | False alerts | Missed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Revenue, combined + segments | **100.0%** | **85.0%** | **91.9%** | 34 | 0 | 6 |
+| Units, combined + segments | **100.0%** | **82.9%** | **90.6%** | 29 | 0 | 6 |
+
+Each metric covers 260 held-out week observations. The misses concentrate in the small localized supply disruption, especially its second week. No threshold was retuned after viewing these results. Whole-seed bootstrap intervals, every method/seed, every prediction, and the frozen protocol are in [reports/benchmark](reports/benchmark). Zero observed false alerts is not a guarantee of zero future errors; bootstrap intervals can be degenerate when all five seeds behave identically.
+
+For comparison, the **development** seed (42) scores below cover 78 monitored weeks after a 26-week clean history period:
 
 | Metric | Monitor | Precision | Recall | F1 | True alerts | False alerts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -35,6 +44,7 @@ python -m pip install -r requirements.txt
 python generate_data.py
 python evaluate.py
 python pipeline.py
+python prepare_live.py
 python -m pytest -q
 python -m streamlit run app.py
 ```
@@ -42,6 +52,22 @@ python -m streamlit run app.py
 On macOS/Linux, activate with `source .venv/bin/activate`. The committed dataset and reports let the app start immediately; generation and evaluation commands rebuild them. If no dataset or reports exist, the app computes them. To refresh cached results during development, clear Streamlit's cache after rebuilding reports.
 
 On Windows, `./run_local.ps1` starts the app using the project's environment, a system Python, or the local portable runtime when present. The portable runtime is a local convenience and is not included in the repository; cloned copies need the setup above.
+
+Run `python benchmark.py` to reproduce the frozen future-period evaluation. A rerun verifies reproducibility; it is not a new untouched evaluation. If detector settings change, the fingerprint check rejects reuse of this holdout protocol.
+
+## Feed ingestion
+
+The Streamlit sidebar offers the original demo, the latest monitored synthetic feed, and a sales CSV upload. Uploads are validated and computed for the session, with no assumed outcome labels. The upload view includes sample sales and operational-context downloads.
+
+For persistent local ingestion, supply a local CSV or HTTPS source:
+
+```powershell
+python pipeline.py --directory data/custom --output reports/custom --feed path/to/sales.csv --source-kind external
+```
+
+Add `--operations-feed path/to/operations.csv` for independent business evidence. Complete history is required for a new store; subsequent runs can append complete later weeks. Identical overlaps are skipped, conflicting records fail, and incomplete weeks cannot enter the validated store. Sales snapshots are replaced atomically after validation. Historical corrections and a changed segment universe require explicit data review. At least 27 complete weeks are needed to produce monitored results.
+
+HTTPS feeds are limited to 30 MB and have a 30-second timeout. The CLI does not assume that unlabeled external weeks are normal and does not publish an external feed to the public demo. See [the operations guide](docs/operations.md).
 
 ## What you can explore
 
@@ -53,6 +79,9 @@ On Windows, `./run_local.ps1` starts the app using the project's environment, a 
 - Separate revenue changes into volume and price/mix effects.
 - Inspect precision, recall, confusion counts, and the scenario ledger.
 - Download a driver CSV or plain-text investigation brief.
+- Upload another sales panel and optional inventory, pricing, and availability evidence.
+- Explore a proposed action's recovery rate, contribution margin, cost, and break-even point.
+- Review a bounded signal queue and export an analyst disposition record.
 
 ## Pipeline
 
@@ -66,6 +95,9 @@ Seeded sales generator → quality checks → DuckDB star schema
                        Streamlit investigation + exports
 
 Separate scenario ledger → evaluation only → measured reports
+
+Validated new-week feed → idempotent append → monitoring → decision brief
+Operational records ────────────────────────────────────→ evidence
 ```
 
 | File | Responsibility |
@@ -81,6 +113,11 @@ Separate scenario ledger → evaluation only → measured reports
 | `pipeline.py` | Batch monitoring with per-alert narrative and chart exports |
 | `export_demo.py` | Public interactive report built from Python results |
 | `tests/` | Reconciliation, leakage, quality, SQL, and app checks |
+| `ingestion.py` | CSV/HTTPS loading, validation, conflict detection, atomic snapshots |
+| `simulate_feed.py`, `prepare_live.py` | Advancing synthetic source and monitored feed refresh |
+| `decision.py` | Independent operational evidence and intervention economics |
+| `benchmark.py` | Frozen five-seed future evaluation and seed-bootstrap intervals |
+| `review_queue.py` | Three-signal weekly review budget without hiding evidence |
 
 ## Methodology
 
@@ -90,7 +127,7 @@ Separate scenario ledger → evaluation only → measured reports
 
 **Isolation Forest:** fit 80 trees on prior log levels, WoW changes, and YoY changes, with contamination 0.04 and fixed random state. YoY is filled with zero before 52 weeks; this transition and evolving trend can generate false alerts. The modest precision is retained in the scorecard to show that a more complex method is not automatically more useful.
 
-**Combined monitor:** seasonal total alerts OR agreement between rolling Z and Isolation Forest OR a seasonal marginal alert in any region, product, or channel. Marginal alerts recover events diluted in totals. Testing multiple panels raises false-alert risk; the demo does not implement formal false-discovery control.
+**Combined monitor:** seasonal total alerts OR agreement between rolling Z and Isolation Forest OR a seasonal marginal alert in any region, product, or channel. Marginal thresholds increase with the number of panels: `max(3, normal_quantile(1 − 0.01 / (2 × panels)))`, about 3.55 for 26 panels. This conservative adjustment limits noisy local alerts, but robust seasonal scores are approximate rather than calibrated p-values, so formal family-wise error control is not claimed. Thresholds and the three-signal review budget are versioned in `detector_config.json`.
 
 **Attribution:** calculate expected sales for each region/product/channel cell from the previous four weeks. `delta = actual − expected`; `contribution = delta / total_gap`. Marginal views describe the same total from different dimensions and must not be added together. Negative contributions offset the net movement; shares above 100% are possible. Near-zero gaps suppress unstable percentages.
 
@@ -98,21 +135,23 @@ Separate scenario ledger → evaluation only → measured reports
 
 Sales data show **where** a change occurred, not a verified business cause. Narrative suggestions require inventory, promotion, pricing, or operational evidence before a causal claim.
 
+Operational context is a separate feed, not the ground-truth ledger. Supported records include stockout days, fill rate, outage minutes, promotion discounts, store-count changes, temperature, and price changes. Decisions name an owner and a success measure. The value calculator reports potential recovery and contribution margin after intervention cost, rather than fabricated realized gains. The [West availability case](docs/business_case.md) demonstrates an intervention that does **not** pay back at the default cost.
+
 ## Deploy
 
 The included Pages workflow publishes a standalone interactive demo from the Python pipeline after tests pass. It supports both metrics, all four detection methods, week selection, segment drill-down, scorecards, and downloads. It explores precomputed results and does not execute Python on the web. The Streamlit app runs the complete Python workspace.
 
-The intended public deployment is Streamlit Community Cloud. Push the repository to GitHub, connect the account at [Streamlit Community Cloud](https://share.streamlit.io/), and create an app with branch `main` and entrypoint `app.py`. Choose Python 3.10 in advanced settings. The requirements file and theme are included. Follow the [official deployment instructions](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
+The full workspace can run on Streamlit Community Cloud. Connect the account at [Streamlit Community Cloud](https://share.streamlit.io/) and create an app from `pDawg-1/autoroot`, branch `main`, entrypoint `app.py`, using Python 3.11. The requirements file and theme are included. Follow the [official deployment instructions](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy). A Dockerfile and health check are also included for other Python hosts.
 
 The [public demo](https://pdawg-1.github.io/autoroot/) is deployed on GitHub Pages. Its HTML and bundled chart library were verified to return HTTP 200. The Pages workflow runs pipeline tests and exported-demo control checks before deployment.
 
 ## Validation and further work
 
-Weekly monitoring is scheduled every Monday at 13:30 UTC, with a manual run option in GitHub Actions. It reads the committed sales CSVs and exports per-alert narrative briefs, timeline/waterfall HTML charts, evidence, and evaluation metrics as downloadable artifacts. It does not ingest an external feed: unchanged source data produces unchanged investigations. Run `python pipeline.py` locally for the same batch workflow.
+Weekly monitoring is scheduled every Monday at 13:30 UTC, with a manual run option in GitHub Actions. It generates an advancing synthetic source through the previous complete Monday-start week, validates new records against the stored snapshot, and exports investigation briefs, charts, decision estimates, and review queues as artifacts. The scheduled job has read-only repository permission: it does not commit data or automatically republish the public demo. Pages refreshes on an authorized repository push. Run `python prepare_live.py` locally for the same feed refresh.
 
 GitHub Actions rebuilds the panel, runs evaluation, tests the app and pipeline, and uploads evaluation artifacts. Tests verify that future mutations cannot change earlier scores, all attribution dimensions reconcile, the revenue bridge balances, invalid panels fail, and units labels exclude the price event.
 
-Before operational use: validate more years of real history, reserve untouched holdout periods, test additional random seeds, tune alert budgets without viewing test labels, account for holidays and missing segments, add multiplicity controls, and review alerts with business owners. The synthetic generator intentionally provides a clean initial calibration period and one-week events; real systems rarely offer that convenience.
+Remaining scope: all business data are synthetic, and estimated intervention value is not a realized outcome. The new holdout covers five seeded future worlds, not real-data generalization. Initial warmup weeks are excluded, YoY is unavailable during the first year, and the strict panel model requires controlled handling of new products, returns, missingness, and structural changes. Use operational labels and controlled comparisons before relying on the decisions in a business setting.
 
 See [the interview notes](docs/interview_notes.md) for design tradeoffs and [the data dictionary](docs/data_dictionary.md) for the model.
 

@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-10-01T15:02:41.470607+00:00",
+  "source_kind": "synthetic",
+  "last_week": "2026-09-21",
+  "sales_sha256": "b8641554257f80a5f79dd370654c219e89603c9684e5c33cd7f337875cdc91f8",
+  "detector_sha256": "22992ede8b07a7c2e096378a7dd88e885220055924de7e861cf614c8b87931f2",
+  "config_sha256": "82234d37be45cdada88333212dfeb1489c4081582f8534409987b3f24c9452ab",
+  "labels_available": true,
+  "operational_context": true,
+  "quality": {
+    "rows": 70200,
+    "weeks": 195,
+    "segments_per_week": 360,
+    "status": "passed"
+  }
+}

@@ -1,0 +1,9 @@
+region,demand_factor
+North,1.2
+South,1.12
+East,1.05
+West,1.15
+Central,0.95
+Northeast,0.9
+Northwest,0.82
+Southeast,1.0

@@ -12,3 +12,11 @@ reports/*.png
 reports/plotly.min.js
 *.log
 site/
+data/feeds/
+reports/**/*.html
+reports/**/plotly.min.js
+*.tmp
+data/custom/
+data/external/
+reports/custom/
+reports/external/

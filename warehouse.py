@@ -2,6 +2,7 @@
 from pathlib import Path
 import duckdb
 import pandas as pd
+import numpy as np
 
 ROOT = Path(__file__).resolve().parent
 
@@ -9,32 +10,53 @@ def validate(sales):
     required = ["week", "region", "sku", "channel", "units", "revenue"]
     if not set(required).issubset(sales.columns):
         raise ValueError("Missing required sales columns")
+    if sales.empty:
+        raise ValueError("Sales input is empty")
     if sales[required].isna().any().any():
         raise ValueError("Null values in sales")
     if sales.duplicated(required[:4]).any():
         raise ValueError("Duplicate segment-week records")
     if (sales[["units", "revenue"]] < 0).any().any():
         raise ValueError("Negative sales")
+    if not np.isfinite(sales[["units", "revenue"]].to_numpy(dtype=float)).all():
+        raise ValueError("Non-finite sales values")
     if (sales.units % 1 != 0).any():
         raise ValueError("Units must be whole numbers")
     weeks = pd.DatetimeIndex(pd.to_datetime(sales.week).unique()).sort_values()
+    if not (weeks.dayofweek == 0).all() or not (weeks == weeks.normalize()).all():
+        raise ValueError("Weeks must be Monday dates without a time component")
     if len(weeks) > 1 and not ((weeks[1:] - weeks[:-1]).days == 7).all():
         raise ValueError("Missing or irregular weeks")
     counts = sales.groupby("week").size()
+    expected_segments=sales.region.nunique()*sales.sku.nunique()*sales.channel.nunique()
+    if not counts.eq(expected_segments).all():
+        raise ValueError("Incomplete region/product/channel panel")
     if counts.nunique() != 1:
         raise ValueError("Incomplete weekly panel")
     if not sales.groupby(required[1:4]).size().eq(len(weeks)).all():
         raise ValueError("Incomplete segment history")
     return {"rows": len(sales), "weeks": len(weeks), "segments_per_week": int(counts.iloc[0]), "status": "passed"}
 
-def build_warehouse(directory=None, database=":memory:"):
+def build_warehouse(directory=None, database=":memory:",sales_data=None):
     directory = Path(directory or ROOT / "data")
-    sales = pd.read_csv(directory / "sales.csv", parse_dates=["week"])
+    sales = sales_data.copy() if sales_data is not None else pd.read_csv(directory / "sales.csv", parse_dates=["week"])
     validate(sales)
     conn = duckdb.connect(str(database))
     conn.execute((ROOT / "schema.sql").read_text())
     for name, table in [("regions", "dim_region"), ("products", "dim_product"), ("channels", "dim_channel"), ("sales", "fact_sales")]:
-        frame = sales if name == "sales" else pd.read_csv(directory / f"{name}.csv")
+        if name=="sales":
+            frame=sales
+        elif sales_data is None and (directory/f"{name}.csv").exists():
+            frame=pd.read_csv(directory/f"{name}.csv")
+        elif name=="regions":
+            frame=pd.DataFrame({"region":sorted(sales.region.unique()),"demand_factor":1.})
+        elif name=="channels":
+            frame=pd.DataFrame({"channel":sorted(sales.channel.unique()),"demand_factor":1.,"price_factor":1.})
+        else:
+            frame=sales.groupby("sku",as_index=False).agg(base_demand=("units","mean"),total_revenue=("revenue","sum"),total_units=("units","sum"))
+            frame["base_demand"]=frame.base_demand.round().astype(int)
+            frame["list_price"]=frame.total_revenue/frame.total_units.clip(lower=1)
+            frame=frame[["sku","base_demand","list_price"]]
         conn.register("input_frame", frame)
         conn.execute(f"INSERT INTO {table} SELECT * FROM input_frame")
         conn.unregister("input_frame")

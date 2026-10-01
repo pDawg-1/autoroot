@@ -1,0 +1,17 @@
+.git
+.runtime
+.venv
+__pycache__
+.pytest_cache
+site
+data/feeds
+data/custom
+data/external
+reports/custom
+reports/external
+reports/**/*.html
+reports/**/plotly.min.js
+.streamlit/secrets.toml
+.env
+*.duckdb
+*.log

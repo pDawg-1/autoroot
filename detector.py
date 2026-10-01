@@ -1,10 +1,14 @@
 """Past-only statistical monitoring at total and segment level."""
 import numpy as np
 import pandas as pd
+import json
+from pathlib import Path
+from scipy.stats import norm
 from sklearn.ensemble import IsolationForest
 
 METHODS = ["rolling_z", "seasonal", "isolation_forest", "ensemble"]
 WARMUP = 26
+CONFIG = json.loads((Path(__file__).resolve().parent/"detector_config.json").read_text())
 
 def design(t):
     t = np.asarray(t)
@@ -32,7 +36,7 @@ def seasonal_residual(values):
         pred = (design([i]) @ beta).item()
         expected[i] = np.exp(pred)
         # Operational noise floor prevents trivial deviations becoming alerts.
-        scale = max(1.4826*np.median(np.abs(residual-np.median(residual))), .025)
+        scale = max(1.4826*np.median(np.abs(residual-np.median(residual))), CONFIG["seasonal_noise_floor"])
         score[i] = (np.log(max(values[i], 1))-pred) / scale
     return expected, score
 
@@ -49,34 +53,36 @@ def monitor_series(frame, metric="revenue"):
     flags = np.zeros(len(frame), dtype=bool)
     for i in range(WARMUP, len(frame)):
         history = features.iloc[1:i]
-        model = IsolationForest(n_estimators=80, contamination=.04, random_state=42, n_jobs=1)
+        model = IsolationForest(n_estimators=CONFIG["forest_trees"], contamination=CONFIG["forest_contamination"], random_state=CONFIG["forest_random_state"], n_jobs=1)
         model.fit(history)
         scores[i] = -model.decision_function(features.iloc[[i]])[0]
         flags[i] = model.predict(features.iloc[[i]])[0] == -1
     eligible = np.arange(len(frame)) >= WARMUP
     frame["eligible"] = eligible
-    frame["rolling_z"] = eligible & frame.rolling_score.abs().gt(3)
-    frame["seasonal"] = eligible & frame.seasonal_score.abs().gt(3)
+    frame["rolling_z"] = eligible & frame.rolling_score.abs().gt(CONFIG["rolling_threshold"])
+    frame["seasonal"] = eligible & frame.seasonal_score.abs().gt(CONFIG["seasonal_threshold"])
     frame["isolation_score"] = scores
     frame["isolation_forest"] = eligible & flags
     # Seasonal evidence or agreement between independent raw-signal methods.
     frame["ensemble"] = frame.seasonal | (frame.rolling_z & frame.isolation_forest)
     return frame
 
-def detect(sales, metric="revenue", segments=True):
+def detect(sales, metric="revenue", segments=True, forest=True):
     weekly = sales.groupby("week", as_index=False)[metric].sum()
     total = monitor_series(weekly, metric)
     evidence = []
     if segments:
+        panel_count = sum(sales[dimension].nunique() for dimension in ["region", "sku", "channel"])
+        panel_threshold = max(CONFIG["seasonal_threshold"], float(norm.isf(CONFIG["panel_family_alpha"]/(2*panel_count))))
         # Seasonal scores on marginal dimensions catch localized events diluted in totals.
         for dimension in ["region", "sku", "channel"]:
             grouped = sales.groupby(["week", dimension], as_index=False)[metric].sum()
             for segment, panel in grouped.groupby(dimension):
                 panel = panel.sort_values("week").reset_index(drop=True)
                 expected, score = seasonal_residual(panel[metric])
-                for i in np.flatnonzero(np.abs(score) > 3):
-                    evidence.append({"week": panel.week.iloc[i], "dimension": dimension, "segment": segment, "actual": float(panel[metric].iloc[i]), "expected": expected[i], "score": score[i]})
-        events = pd.DataFrame(evidence, columns=["week", "dimension", "segment", "actual", "expected", "score"])
+                for i in np.flatnonzero(np.abs(score) > panel_threshold):
+                    evidence.append({"week": panel.week.iloc[i], "dimension": dimension, "segment": segment, "actual": float(panel[metric].iloc[i]), "expected": expected[i], "score": score[i], "threshold": panel_threshold})
+        events = pd.DataFrame(evidence, columns=["week", "dimension", "segment", "actual", "expected", "score", "threshold"])
         segment_weeks = set(events.week)
         total["segment_alert"] = total.week.isin(segment_weeks)
         total["ensemble"] |= total.segment_alert
