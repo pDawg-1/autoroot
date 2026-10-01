@@ -11,7 +11,10 @@ function renderDecision() {
   $('decision-owner').textContent='Owner: '+decision.owner;
   $('decision-action').textContent=decision.action;
   $('decision-success').textContent=decision.success_measure;
-  $('decision-evidence').innerHTML=decision.evidence.map(line=>'<li>'+esc(line)+'</li>').join('');
+  const evidence=decision.evidence || [];
+  $('decision-evidence').innerHTML=evidence.length
+    ? evidence.map(line=>'<li>'+esc(line)+'</li>').join('')
+    : '<li>No qualifying operational evidence is available for this week. Sales changes alone do not establish a cause. Check inventory, availability, pricing, and campaign records before choosing an intervention.</li>';
   const exposure=decision.exposed_revenue;
   $('exposed-value').textContent=amount(exposure,'revenue');
   $('potential-value').textContent=amount(exposure*recovery,'revenue');
