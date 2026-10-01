@@ -20,8 +20,11 @@ function render(){if(!result)return;const week=el('week').value,r=result.investi
  el('narrative').textContent=r.narrative;
  Plotly.react('timeline',[{x:result.weekly.map(x=>x.week),y:result.weekly.map(x=>x[m]),name:'Actual',type:'scatter'},{x:result.weekly.map(x=>x.week),y:result.weekly.map(x=>x.expected),name:'Seasonal expected',type:'scatter'},{x:result.weekly.filter(x=>x.ensemble).map(x=>x.week),y:result.weekly.filter(x=>x.ensemble).map(x=>x[m]),mode:'markers',name:'Alerts',marker:{color:'#d15543',size:10}}],{title:'Weekly '+m,margin:{t:50}},{responsive:true});
  Plotly.react('bridge',[{type:'waterfall',x:['Four-week baseline','Volume','Price / mix','Actual'],y:[r.expected,r.volume,r.price,0],measure:['absolute','relative','relative','total']}],{title:'Revenue bridge',margin:{t:50}},{responsive:true});
- el('bridge').hidden=m!=='revenue';const d=el('dimension').value,rows=r.drivers[d];const keys=[d,m+'_actual',m+'_expected','delta','contribution_pct'];
+ el('bridge').hidden=m!=='revenue';renderDrivers();
+}
+function renderDrivers(){if(!result)return;const r=result.investigations[el('week').value],m=result.metric;
+ const d=el('dimension').value,rows=r.drivers[d];const keys=[d,m+'_actual',m+'_expected','delta','contribution_pct'];
  el('drivers').innerHTML='<table><thead><tr>'+keys.map(k=>'<th>'+escapeText(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(x=>'<tr>'+keys.map(k=>'<td>'+escapeText(typeof x[k]==='number'?x[k].toFixed(2):x[k]??'—')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
 }
-el('week').onchange=render;el('dimension').onchange=render;
+el('week').onchange=render;el('dimension').onchange=renderDrivers;
 el('download').onclick=()=>{if(!result)return;const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='sales-analysis.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
