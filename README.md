@@ -147,7 +147,7 @@ The [public demo](https://pdawg-1.github.io/autoroot/) is deployed on GitHub Pag
 
 ## Validation and further work
 
-Weekly monitoring is scheduled every Monday at 13:30 UTC, with a manual run option in GitHub Actions. It generates an advancing synthetic source through the previous complete Monday-start week, validates new records against the stored snapshot, and exports investigation briefs, charts, decision estimates, and review queues as artifacts. The scheduled job has read-only repository permission: it does not commit data or automatically republish the public demo. Pages refreshes on an authorized repository push. Run `python prepare_live.py` locally for the same feed refresh.
+Weekly monitoring and public report refresh are scheduled every Monday at 13:30 UTC, with manual run options in GitHub Actions. They generate an advancing synthetic source through the previous complete Monday-start week, validate new records against the stored snapshot, and export investigation briefs, charts, decision estimates, and review queues. The Pages workflow publishes the refreshed report using its existing deployment permissions; neither workflow commits data. Uploaded and external sources are excluded from scheduled publishing. The repository's saved feed snapshot advances through maintainer commits. Run `python prepare_live.py` locally for the same feed refresh.
 
 GitHub Actions rebuilds the panel, runs evaluation, tests the app and pipeline, and uploads evaluation artifacts. Tests verify that future mutations cannot change earlier scores, all attribution dimensions reconcile, the revenue bridge balances, invalid panels fail, and units labels exclude the price event.
 

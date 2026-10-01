@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '30 13 * * 1'
 permissions:
   contents: read
   pages: write
@@ -22,6 +24,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python generate_data.py
       - run: python pipeline.py
+      - run: python prepare_live.py
       - run: python -m pytest -q
       - run: python export_demo.py
       - run: node tests/demo_smoke.cjs

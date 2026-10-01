@@ -32,7 +32,7 @@ Partial context is allowed only for keys present in the sales panel. Missing con
 
 Reports include weekly SQL KPIs, all detector outputs, local evidence, an additive driver bridge, an intervention scenario, and a ranked review queue. `manifest.json` records the latest observed week, source hash, detector hash, configuration hash, and generation time. The Streamlit app uses saved detector results only if those hashes match; otherwise it recomputes from the selected sales panel. Uploads also compute through the Python detector.
 
-The current weekly GitHub workflow refreshes **synthetic** monitoring and uploads report artifacts. It has read-only repository access. It does not persist its refreshed snapshot back to the repository or republish Pages. The saved public snapshot advances when a maintainer publishes a validated update. No external source is configured in the scheduled job.
+Every Monday at 13:30 UTC, the monitoring workflow refreshes **synthetic** reports as downloadable artifacts, and the Pages workflow rebuilds and publishes the public report through the latest complete week. Both read the repository without committing changes. Pages retains its existing deployment permissions. The repository's saved feed snapshot changes only when a maintainer commits a validated update. No uploaded or external source is configured in either scheduled job.
 
 ## Analyst review
 
