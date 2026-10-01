@@ -24,7 +24,8 @@ function render(){if(!result)return;const week=el('week').value,r=result.investi
 }
 function renderDrivers(){if(!result)return;const r=result.investigations[el('week').value],m=result.metric;
  const d=el('dimension').value,rows=r.drivers[d];const keys=[d,m+'_actual',m+'_expected','delta','contribution_pct'];
- el('drivers').innerHTML='<table><thead><tr>'+keys.map(k=>'<th>'+escapeText(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(x=>'<tr>'+keys.map(k=>'<td>'+escapeText(typeof x[k]==='number'?x[k].toFixed(2):x[k]??'—')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+ const labels=[{region:'Region',sku:'Product',channel:'Channel'}[d],'This week','Usual sales','Change','Share of change (%)'];
+ el('drivers').innerHTML='<table><thead><tr>'+labels.map(label=>'<th>'+escapeText(label)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(x=>'<tr>'+keys.map(k=>'<td>'+escapeText(typeof x[k]==='number'?x[k].toFixed(2):x[k]??'—')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
 }
 el('week').onchange=render;el('dimension').onchange=renderDrivers;
 el('download').onclick=()=>{if(!result)return;const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='sales-analysis.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};

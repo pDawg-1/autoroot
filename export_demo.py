@@ -64,7 +64,6 @@ def export(output=None,directory=None,reports=None):
     for name in ["upload.html","upload.js","browser_worker.js"]:
         shutil.copyfile(ROOT/"docs"/name,output/name)
     shutil.copyfile(ROOT/"data"/"sales.csv",output/"sample_sales.csv")
-    html=html.replace('<body>','<body><p style="padding:16px 24px"><a href="upload.html">Analyze your own sales CSV →</a></p>',1)
     (output/"index.html").write_text(html,encoding="utf-8")
     print(f"Exported {len(payload['revenue']['investigations'])} investigation weeks per metric to {output}")
 

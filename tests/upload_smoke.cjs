@@ -16,7 +16,7 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('site/upload.js','utf8
  for(const dimension of ['sku','channel','region','sku']){
    get('dimension').value=dimension;get('dimension').onchange();
    assert.equal(plots,2,'Changing drivers must not redraw charts or disturb scroll position');
-   assert.match(get('drivers').innerHTML,new RegExp('<th>'+dimension+'</th>'));
+   assert.match(get('drivers').innerHTML,new RegExp('<th>'+({region:'Region',sku:'Product',channel:'Channel'}[dimension])+'</th>'));
    assert.equal(get('dimension').value,dimension);assert.equal(get('week').value,'2024-01-01');
    assert.equal(get('results').hidden,false);assert.equal(get('summary').textContent,summary);
  }
