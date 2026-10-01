@@ -1,0 +1,4 @@
+channel,demand_factor,price_factor
+Modern trade,0.55,1.0
+Convenience,0.28,1.08
+Online,0.17,0.96

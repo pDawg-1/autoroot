@@ -1,0 +1,9 @@
+id,name,region,sku,channel,units_multiplier,price_multiplier,hypothesis,week,affected_rows,injected_units_delta,injected_revenue_delta
+S01,Regional heatwave,North,*,*,1.35,1.0,Weather-driven demand; validate against local weather records.,2023-08-14,45,3531,8706.22
+S02,Promotion cannibalization,*,Cola 750ml|Lemon 600ml,Modern trade,1.8,0.7,Promotion uplift with a discount; validate promotion calendar and substitution.,2023-12-18,16,6791,5781.48
+S03,Supply disruption,West,Cola 750ml|Lemon 600ml,*,0.6,1.0,Possible stockout; validate inventory and fill-rate records.,2024-01-29,6,-960,-2553.22
+S04,Online channel outage,*,*,Online,0.35,1.0,Possible checkout disruption; validate order logs and uptime.,2024-03-18,120,-9426,-22022.5
+S05,Price reset,*,*,*,1.0,1.22,Price increase rather than volume growth; validate price master.,2024-05-20,360,0,46559.27
+S06,Regional distribution expansion,South,*,Modern trade,1.65,1.0,Possible distribution gain; validate active store count.,2024-07-22,15,3769,9054.7
+S07,National demand contraction,*,*,*,0.78,1.0,Broad demand weakness; validate market and calendar context.,2024-09-30,360,-14636,-36116.2
+S08,Convenience restocking,*,*,Convenience,1.45,1.0,Possible inventory restocking; validate sell-through versus shipments.,2024-11-25,120,9470,24793.13

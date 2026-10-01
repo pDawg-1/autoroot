@@ -1,0 +1,13 @@
+.runtime/
+.venv/
+__pycache__/
+.pytest_cache/
+*.duckdb
+*.duckdb.wal
+.env
+.streamlit/secrets.toml
+New
+reports/*.html
+reports/*.png
+*.log
+site/
