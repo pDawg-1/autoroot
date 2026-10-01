@@ -2,6 +2,8 @@
 
 **Monitor weekly sales. Investigate unusual movements. Explain the drivers.**
 
+[Analyze your own CSV in the browser](https://pdawg-1.github.io/autoroot/upload.html). Python runs on the visitor's device using a pinned WebAssembly runtime, with the same detector configuration and root-cause code as the local application. Sales files are not sent to a server. First use downloads scientific packages; processing speed depends on the device. Browser uploads support 27–260 complete weeks, at most 100,000 rows, 60 marginal segments, and a 10 MB file. The page provides both KPI options, week selection, fresh alerts, signed driver tables, revenue bridges, cancellation, and JSON downloads. It does not attach synthetic accuracy labels to uploaded data. Native SQL warehouse operations and optional operational-context uploads remain in the local Streamlit app.
+
 [**Open the live demo**](https://pdawg-1.github.io/autoroot/) · [Source repository](https://github.com/pDawg-1/autoroot) · [Pipeline checks](https://github.com/pDawg-1/autoroot/actions/workflows/verify.yml)
 
 AutoRoot is a Python sales investigation workspace that follows the analyst workflow from a weekly alert to a reconciled explanation. It combines past-only anomaly detection, DuckDB KPI queries, segment attribution, and interactive Plotly charts in Streamlit.

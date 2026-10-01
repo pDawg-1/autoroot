@@ -28,6 +28,9 @@ jobs:
       - run: python -m pytest -q
       - run: python export_demo.py
       - run: node tests/demo_smoke.cjs
+      - run: node tests/upload_smoke.cjs
+      - run: python tests/download_browser_runtime.py
+      - run: node tests/browser_runtime.cjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

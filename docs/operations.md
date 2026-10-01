@@ -42,6 +42,10 @@ Record one of: unreviewed, confirmed movement, dismissed alert, or needs more ev
 
 ## Full-app hosting
 
+The public `upload.html` page runs sales validation, anomaly detection, and attribution locally inside the browser through Pyodide 0.27.7. GitHub Pages serves the interface and Python source; jsDelivr serves the pinned runtime and scientific wheels. Selected CSV contents stay on the visitor's device. No Python server or additional hosting account is needed. This page reuses the detector and configuration without changing the frozen benchmark. A WebAssembly execution check compares every sample revenue alert with native Python before publication. Package versions differ between the browser runtime and the native environment, so the sample parity check is not a guarantee for every possible uploaded dataset.
+
+Browser runtime downloads require internet access and can take a minute on first use. Analysis runs in a separate worker, can be cancelled, and supports bounded weekly panels. The browser view accepts sales files; optional operational context, DuckDB warehouse inspection, and analyst review controls remain available in the local app.
+
 Deploy `app.py` from the `main` branch on Streamlit Community Cloud using Python 3.11. The application serves interactive Python computation and CSV uploads; the Pages report serves exported investigations. Do not substitute a Pages URL for a full-app deployment claim.
 
 A Docker deployment uses port 8501 and checks `/_stcore/health`. Container deployment is provided as an option; the local environment does not include a container engine for a build test.

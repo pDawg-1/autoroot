@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AutoRoot · Analyze your sales</title>
+<style>body{font:16px system-ui;background:#f5f7fa;color:#17283c;max-width:1100px;margin:40px auto;padding:0 20px}section{background:white;padding:24px;border-radius:14px;margin:20px 0}button,select,input{font:inherit;padding:10px;margin:6px}button{cursor:pointer}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px;border-bottom:1px solid #ddd}.scroll{overflow:auto}#status{white-space:pre-wrap}a{color:#146f78}</style>
+<a href="./">← Weekly report</a><h1>Analyze your sales CSV</h1>
+<p>Run fresh Python analysis in your browser. Selected sales data stays on your device. Scientific packages download on first use; no hosting account is needed.</p>
+<section><p>Required columns: <code>week,region,sku,channel,units,revenue</code>. Use Monday dates, a complete weekly segment panel, 27–260 weeks, at most 100,000 rows and a 10 MB file.</p>
+<a href="sample_sales.csv" download>Download sample sales</a><br>
+<input id="file" type="file" accept=".csv,text/csv" aria-label="Sales CSV"><select id="metric" aria-label="Metric"><option value="revenue">Revenue</option><option value="units">Units</option></select>
+<button id="run">Analyze CSV</button><button id="cancel" disabled>Cancel</button><p id="status" role="status">Choose a CSV to begin.</p></section>
+<section id="results" hidden><label>Investigation week <select id="week"></select></label><button id="download">Download results</button><p id="summary"></p><p id="narrative"></p><div id="timeline"></div><div id="bridge"></div><label>Drivers <select id="dimension"><option>region</option><option>sku</option><option>channel</option></select></label><div id="drivers" class="scroll"></div><p>Drivers describe contributions, not proven business causes. Upload analysis has no synthetic ground-truth labels or accuracy claim.</p></section>
+<script src="plotly.min.js"></script><script src="upload.js"></script></html>

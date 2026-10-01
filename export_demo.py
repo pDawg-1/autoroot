@@ -6,6 +6,8 @@ import plotly.offline
 from root_cause import investigate
 from decision import recommend
 import argparse
+import ast
+import shutil
 
 ROOT = Path(__file__).resolve().parent
 
@@ -51,6 +53,19 @@ def export(output=None,directory=None,reports=None):
     html = template.replace("__PAYLOAD__",json.dumps(payload,allow_nan=False).replace("</","<\\/"))
     (output/"index.html").write_text(html,encoding="utf-8")
     (output/"plotly.min.js").write_text(plotly.offline.get_plotlyjs(),encoding="utf-8")
+    # Export the exact validator without loading the native DuckDB dependency.
+    python_dir=output/"python"
+    python_dir.mkdir(exist_ok=True)
+    warehouse_source=(ROOT/"warehouse.py").read_text(encoding="utf-8")
+    validator=next(n for n in ast.parse(warehouse_source).body if isinstance(n,ast.FunctionDef) and n.name=="validate")
+    (python_dir/"sales_validation.py").write_text("import pandas as pd\nimport numpy as np\n"+ast.get_source_segment(warehouse_source,validator)+"\n",encoding="utf-8")
+    for name in ["detector.py","detector_config.json","root_cause.py","browser_analysis.py"]:
+        shutil.copyfile(ROOT/name,python_dir/name)
+    for name in ["upload.html","upload.js","browser_worker.js"]:
+        shutil.copyfile(ROOT/"docs"/name,output/name)
+    shutil.copyfile(ROOT/"data"/"sales.csv",output/"sample_sales.csv")
+    html=html.replace('<body>','<body><p style="padding:16px 24px"><a href="upload.html">Analyze your own sales CSV →</a></p>',1)
+    (output/"index.html").write_text(html,encoding="utf-8")
     print(f"Exported {len(payload['revenue']['investigations'])} investigation weeks per metric to {output}")
 
 if __name__ == "__main__":
