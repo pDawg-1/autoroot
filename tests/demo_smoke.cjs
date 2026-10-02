@@ -6,7 +6,10 @@ const html = fs.readFileSync(process.argv[2]||'site/index.html', 'utf8');
 const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
 const elements = new Map();
 function element(id) {
-  if (!elements.has(id)) elements.set(id, {value: '', checked: true, textContent: '', innerHTML: '', className: '', dataset: {}, callbacks: {}, classList: {toggle() {}}, addEventListener(name, fn) {this.callbacks[name]=fn;}, click() {this.callbacks.click?.();}});
+  if (!elements.has(id)) {
+    const classes=new Set();
+    elements.set(id, {value: '', checked: true, textContent: '', innerHTML: '', className: '', dataset: {}, callbacks: {}, classList: {toggle(name,force){const enabled=force===undefined?!classes.has(name):force;if(enabled)classes.add(name);else classes.delete(name);},contains(name){return classes.has(name);}}, addEventListener(name, fn) {this.callbacks[name]=fn;}, click() {this.callbacks.click?.();}});
+  }
   return elements.get(id);
 }
 element('metric').value='revenue';
@@ -16,11 +19,15 @@ const dimensions=['region','sku','channel'].map(id=>{const e=element('dim-'+id);
 const plots=new Map();
 const context=vm.createContext({console,Blob,URL,setTimeout,document:{getElementById:element,querySelectorAll:q=>q==='[data-tab]'?tabs:dimensions,createElement:()=>element('download-link')},Plotly:{react:(id,data,layout)=>plots.set(id,{data,layout}),Plots:{resize(){}}}});
 vm.runInContext(script,context);
+assert.ok(!element('effects').classList.contains('hidden'));
+assert.ok(element('effects-unavailable').classList.contains('hidden'));
 assert.match(element('narrative').textContent,/Validate/);
 assert.ok(element('alerts').textContent>0);
 assert.match(element('holdout').innerHTML,/85\.0%/);
 assert.ok(plots.get('timeline').data[0].x.length>=104);
 element('metric').value='units';element('metric').callbacks.change();
+assert.ok(element('effects').classList.contains('hidden'));
+assert.ok(!element('effects-unavailable').classList.contains('hidden'));
 assert.ok(element('alerts').textContent>0);
 assert.match(element('holdout').innerHTML,/82\.9%/);
 element('only-alerts').checked=false;element('only-alerts').callbacks.change();
